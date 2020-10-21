@@ -52,6 +52,10 @@ public class Exercise1Fragment extends BaseFragment {
     }
 
     private void countIterations() {
+        new Thread(this::countIterationsBlocking).start();
+    }
+
+    private void countIterationsBlocking() {
         long startTimestamp = System.currentTimeMillis();
         long endTimestamp = startTimestamp + ITERATIONS_COUNTER_DURATION_SEC * 1000;
 
