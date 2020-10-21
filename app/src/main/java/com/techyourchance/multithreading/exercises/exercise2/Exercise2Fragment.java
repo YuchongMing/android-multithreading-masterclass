@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import com.techyourchance.multithreading.R;
 import com.techyourchance.multithreading.common.BaseFragment;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -22,11 +24,13 @@ public class Exercise2Fragment extends BaseFragment {
     }
 
     private byte[] mDummyData;
+    private AtomicBoolean shouldRun;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mDummyData = new byte[50 * 1000 * 1000];
+        shouldRun = new AtomicBoolean(true);
         return inflater.inflate(R.layout.fragment_exercise_2, container, false);
     }
 
@@ -38,6 +42,7 @@ public class Exercise2Fragment extends BaseFragment {
 
     @Override
     public void onStop() {
+        shouldRun.set(false);
         super.onStop();
     }
 
@@ -51,7 +56,7 @@ public class Exercise2Fragment extends BaseFragment {
             @Override
             public void run() {
                 int screenTimeSeconds = 0;
-                while (true) {
+                while (shouldRun.get()) {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
