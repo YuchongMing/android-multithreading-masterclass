@@ -42,7 +42,7 @@ public class Exercise3Fragment extends BaseFragment {
 
         mBtnCountSeconds = view.findViewById(R.id.btn_count_seconds);
         mTxtCount = view.findViewById(R.id.txt_count);
-        enableClick();
+        mBtnCountSeconds.setOnClickListener(unused -> countIterations());
         return view;
     }
 
@@ -66,7 +66,7 @@ public class Exercise3Fragment extends BaseFragment {
         if (Looper.getMainLooper().isCurrentThread()) {
             return;
         }
-        mUiHandler.post(this::disableClick);
+        mUiHandler.post(() -> mBtnCountSeconds.setEnabled(false));
         Instant endTime = Instant.now().plus(Duration.ofSeconds(SECOND * 3));
         AtomicInteger screenSecond = new AtomicInteger(1);
         while (Instant.now().isBefore(endTime)) {
@@ -80,7 +80,7 @@ public class Exercise3Fragment extends BaseFragment {
         }
         mUiHandler.post(() -> {
             mTxtCount.setText("Done!");
-            enableClick();
+            mBtnCountSeconds.setEnabled(true);
         });
     }
 
