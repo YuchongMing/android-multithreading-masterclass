@@ -1,6 +1,9 @@
 package com.techyourchance.multithreading.exercises.exercise3;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,13 +13,18 @@ import android.widget.TextView;
 import com.techyourchance.multithreading.R;
 import com.techyourchance.multithreading.common.BaseFragment;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 public class Exercise3Fragment extends BaseFragment {
 
-    private static final int SECONDS_TO_COUNT = 3;
+    private static final int SECOND = 1;
 
     public static Fragment newInstance() {
         return new Exercise3Fragment();
@@ -25,6 +33,8 @@ public class Exercise3Fragment extends BaseFragment {
     private Button mBtnCountSeconds;
     private TextView mTxtCount;
 
+    private final Handler mUiHandler = new Handler(Looper.getMainLooper());
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -32,14 +42,7 @@ public class Exercise3Fragment extends BaseFragment {
 
         mBtnCountSeconds = view.findViewById(R.id.btn_count_seconds);
         mTxtCount = view.findViewById(R.id.txt_count);
-
-        mBtnCountSeconds.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                countIterations();
-            }
-        });
-
+        enableClick();
         return view;
     }
 
@@ -55,5 +58,37 @@ public class Exercise3Fragment extends BaseFragment {
         3. Show count in TextView
         4. When count completes, show "done" in TextView and enable the button
          */
+        new Thread(this::countSecondsInBackground).start();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void countSecondsInBackground() {
+        if (Looper.getMainLooper().isCurrentThread()) {
+            return;
+        }
+        mUiHandler.post(this::disableClick);
+        Instant endTime = Instant.now().plus(Duration.ofSeconds(SECOND * 3));
+        AtomicInteger screenSecond = new AtomicInteger(1);
+        while (Instant.now().isBefore(endTime)) {
+            mUiHandler.post(
+                    () -> mTxtCount.setText(Integer.toString(screenSecond.getAndIncrement())));
+            try {
+                Thread.sleep(Duration.ofSeconds(SECOND).toMillis());
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+        mUiHandler.post(() -> {
+            mTxtCount.setText("Done!");
+            enableClick();
+        });
+    }
+
+    private void enableClick() {
+        mBtnCountSeconds.setOnClickListener(unused -> countIterations());
+    }
+
+    private void disableClick() {
+        mBtnCountSeconds.setOnClickListener(unused -> {});
     }
 }
